@@ -18,9 +18,10 @@ WORKDIR /app
 ARG VITE_API_BASE_URL=http://localhost:8000
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
-# Install dependencies (layer-cached unless package*.json changes).
+# Copy package files and node_modules from the host (pre-installed).
+# This avoids running npm install inside Docker, which requires network access.
 COPY package*.json ./
-RUN npm ci --prefer-offline
+COPY node_modules ./node_modules
 
 # Copy source and build.
 COPY . .
