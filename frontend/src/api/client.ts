@@ -19,15 +19,7 @@ import type {
   RefundSummaryResponse,
 } from './types'
 
-// ---------------------------------------------------------------------------
-// Base URL
-// ---------------------------------------------------------------------------
-
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
-
-// ---------------------------------------------------------------------------
-// Error normalization
-// ---------------------------------------------------------------------------
 
 /**
  * Convert a FastAPI error body to a user-readable string.
@@ -80,10 +72,6 @@ async function parseErrorResponse(response: Response): Promise<ApiError> {
 
   return { status: response.status, message }
 }
-
-// ---------------------------------------------------------------------------
-// HTTP helpers
-// ---------------------------------------------------------------------------
 
 async function getJson<TResponse>(path: string): Promise<TResponse> {
   let response: Response
@@ -139,10 +127,6 @@ async function postJson<TBody, TResponse>(
 
   return (await response.json()) as TResponse
 }
-
-// ---------------------------------------------------------------------------
-// Public API functions
-// ---------------------------------------------------------------------------
 
 /**
  * POST /api/refunds

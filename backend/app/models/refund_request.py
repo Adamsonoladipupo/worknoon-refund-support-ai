@@ -42,7 +42,6 @@ class RefundRequest(Base):
         nullable=False,
     )
 
-    # Relationships
     customer: Mapped["Customer"] = relationship(  # noqa: F821
         "Customer",
         back_populates="refund_requests",

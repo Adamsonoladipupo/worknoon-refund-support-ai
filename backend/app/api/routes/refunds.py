@@ -23,11 +23,6 @@ from app.services.refund_service import RefundService
 router = APIRouter(prefix="/refunds", tags=["refunds"])
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GET /api/refunds — Admin / support dashboard list
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 @router.get(
     "",
     response_model=list[RefundSummaryResponse],
@@ -61,11 +56,6 @@ async def list_refunds(
         )
         for r in records
     ]
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# POST /api/refunds — Submit a structured refund request
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 @router.post(
@@ -109,11 +99,6 @@ async def create_refund(
         ) from exc
 
     return RefundRequestResponse.model_validate(refund_request)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# POST /api/refunds/ai — Submit a natural-language refund request
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 @router.post(

@@ -24,8 +24,8 @@ class Customer(Base):
         nullable=False,
     )
 
-    # Relationships — lazy="raise" forces explicit eager-loading, preventing
-    # accidental N+1 queries in async contexts.
+    # lazy="raise" forces explicit eager-loading, preventing accidental N+1
+    # queries in async contexts.
     orders: Mapped[list["Order"]] = relationship(  # noqa: F821
         "Order",
         back_populates="customer",

@@ -14,14 +14,11 @@ import app.models.order  # noqa: F401
 import app.models.order_item  # noqa: F401
 import app.models.refund_request  # noqa: F401
 
-# Alembic Config gives access to the .ini values.
 config = context.config
 
-# Set up Python logging from the ini file.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# This is the metadata object autogenerate will inspect.
 target_metadata = Base.metadata
 
 
@@ -41,8 +38,6 @@ def do_run_migrations(connection):  # type: ignore[no-untyped-def]
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
-        # Emit a precise BIGINT / UUID comparison instead of the generic one.
-        # and Detect database column type changes during autogeneration.
         compare_type=True,
     )
     with context.begin_transaction():
@@ -51,8 +46,8 @@ def do_run_migrations(connection):  # type: ignore[no-untyped-def]
 
 async def run_migrations_online() -> None:
     """Run migrations using an async connection."""
-    # Create a throw-away engine just for migration runs; this is separate
-    # from the application engine so pooling settings don't interfere.
+    # Separate throw-away engine so migration pooling settings don't interfere
+    # with the application engine.
     connectable = create_async_engine(settings.database_url, echo=False)
 
     async with connectable.connect() as connection:

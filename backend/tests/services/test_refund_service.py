@@ -104,11 +104,6 @@ def _make_order(
     )
 
 
-# ---------------------------------------------------------------------------
-# Helper: build a RefundService with mocked repositories
-# ---------------------------------------------------------------------------
-
-
 def _make_service(
     *,
     customer: SimpleNamespace | None = None,

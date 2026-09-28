@@ -2,15 +2,8 @@ import { useState } from 'react'
 import { submitRefund, submitAIRefund, getRefunds } from './api/client'
 import type { ApiError, RefundDecision, RefundReason, RefundRequestResponse, RefundSummaryResponse } from './api/types'
 
-// ---------------------------------------------------------------------------
-// Test scenario import — included in all builds (dev + Docker/nginx)
-// ---------------------------------------------------------------------------
 import { TEST_SCENARIOS } from './testScenarios'
 import type { TestScenario } from './testScenarios'
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 type SubmissionMode = 'structured' | 'ai'
 type AppView = 'refund' | 'dashboard'
@@ -18,16 +11,10 @@ type AppView = 'refund' | 'dashboard'
 interface FormState {
   customerId: string
   orderId: string
-  // Structured-mode fields
   requestedAmount: string
   reason: RefundReason
-  // AI-mode field
   message: string
 }
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
 
 const INITIAL_FORM: FormState = {
   customerId: '',
@@ -56,10 +43,6 @@ const DECISION_LABELS: Record<RefundDecision, string> = {
   ESCALATED: 'Escalated for review',
 }
 
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
-
 function App() {
   const [view, setView] = useState<AppView>('refund')
   const [mode, setMode] = useState<SubmissionMode>('structured')
@@ -68,10 +51,6 @@ function App() {
   const [result, setResult] = useState<RefundRequestResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [activeScenario, setActiveScenario] = useState<number | null>(null)
-
-  // -------------------------------------------------------------------------
-  // Handlers
-  // -------------------------------------------------------------------------
 
   function handleModeChange(newMode: SubmissionMode) {
     setMode(newMode)
@@ -87,11 +66,9 @@ function App() {
   }
 
   function applyScenario(scenario: TestScenario, index: number) {
-    // Switch mode if the scenario specifies one
     if (scenario.mode !== undefined) {
       setMode(scenario.mode)
     }
-    // Merge the scenario's form patch over the current form state
     setForm((prev) => ({ ...prev, ...scenario.form }))
     if (scenario.clearResult) {
       setResult(null)
@@ -133,10 +110,6 @@ function App() {
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
-
   return (
     <div className="page">
       <header className="page-header">
@@ -144,9 +117,6 @@ function App() {
         <p className="page-subtitle">Submit a refund request for a customer order.</p>
       </header>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Top-level navigation: Refund Form ↔ Admin Dashboard                 */}
-      {/* ------------------------------------------------------------------ */}
       <nav className="app-nav" aria-label="Application sections">
         <button
           type="button"
@@ -168,190 +138,166 @@ function App() {
 
       <main className="page-main">
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Admin Dashboard view                                              */}
-        {/* ---------------------------------------------------------------- */}
         {view === 'dashboard' && <AdminDashboard />}
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Refund form view                                                  */}
-        {/* ---------------------------------------------------------------- */}
         {view === 'refund' && (
           <>
-        {/* ---------------------------------------------------------------- */}
-        {/* Test scenario selector — visible in all builds (dev + Docker)    */}
-        {/* ---------------------------------------------------------------- */}
-        <DevScenarioPanel
-          activeScenario={activeScenario}
-          onSelect={applyScenario}
-        />
+            <DevScenarioPanel
+              activeScenario={activeScenario}
+              onSelect={applyScenario}
+            />
 
-        {/* ---------------------------------------------------------------- */}
-        {/* Mode tabs                                                         */}
-        {/* ---------------------------------------------------------------- */}
-        <div className="mode-tabs" role="group" aria-label="Submission mode">
-          <button
-            type="button"
-            className={`mode-tab${mode === 'structured' ? ' mode-tab--active' : ''}`}
-            aria-pressed={mode === 'structured'}
-            onClick={() => handleModeChange('structured')}
-          >
-            Normal refund
-          </button>
-          <button
-            type="button"
-            className={`mode-tab${mode === 'ai' ? ' mode-tab--active' : ''}`}
-            aria-pressed={mode === 'ai'}
-            onClick={() => handleModeChange('ai')}
-          >
-            AI-assisted refund
-          </button>
-        </div>
-
-        {mode === 'ai' && (
-          <p className="mode-description">
-            Describe the issue in natural language. Gemini will extract the reason
-            and amount; the refund policy engine makes the final decision.
-          </p>
-        )}
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Form                                                              */}
-        {/* ---------------------------------------------------------------- */}
-        <form className="refund-form" onSubmit={handleSubmit} noValidate>
-          {/* Common fields */}
-          <div className="field-group">
-            <div className="field">
-              <label htmlFor="customerId" className="field-label">
-                Customer ID <span aria-hidden="true">*</span>
-              </label>
-              <input
-                id="customerId"
-                name="customerId"
-                type="text"
-                className="field-input"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                value={form.customerId}
-                onChange={handleFieldChange}
-                required
-                disabled={loading}
-                autoComplete="off"
-                spellCheck={false}
-              />
+            <div className="mode-tabs" role="group" aria-label="Submission mode">
+              <button
+                type="button"
+                className={`mode-tab${mode === 'structured' ? ' mode-tab--active' : ''}`}
+                aria-pressed={mode === 'structured'}
+                onClick={() => handleModeChange('structured')}
+              >
+                Normal refund
+              </button>
+              <button
+                type="button"
+                className={`mode-tab${mode === 'ai' ? ' mode-tab--active' : ''}`}
+                aria-pressed={mode === 'ai'}
+                onClick={() => handleModeChange('ai')}
+              >
+                AI-assisted refund
+              </button>
             </div>
 
-            <div className="field">
-              <label htmlFor="orderId" className="field-label">
-                Order ID <span aria-hidden="true">*</span>
-              </label>
-              <input
-                id="orderId"
-                name="orderId"
-                type="text"
-                className="field-input"
-                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                value={form.orderId}
-                onChange={handleFieldChange}
-                required
-                disabled={loading}
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </div>
-          </div>
+            {mode === 'ai' && (
+              <p className="mode-description">
+                Describe the issue in natural language. Gemini will extract the reason
+                and amount; the refund policy engine makes the final decision.
+              </p>
+            )}
 
-          {/* Normal refund fields */}
-          {mode === 'structured' && (
-            <div className="field-group">
-              <div className="field">
-                <label htmlFor="requestedAmount" className="field-label">
-                  Requested amount <span aria-hidden="true">*</span>
-                </label>
-                <input
-                  id="requestedAmount"
-                  name="requestedAmount"
-                  type="text"
-                  inputMode="decimal"
-                  className="field-input"
-                  placeholder="49.99"
-                  value={form.requestedAmount}
-                  onChange={handleFieldChange}
-                  required
-                  disabled={loading}
-                />
+            <form className="refund-form" onSubmit={handleSubmit} noValidate>
+              <div className="field-group">
+                <div className="field">
+                  <label htmlFor="customerId" className="field-label">
+                    Customer ID <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="customerId"
+                    name="customerId"
+                    type="text"
+                    className="field-input"
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    value={form.customerId}
+                    onChange={handleFieldChange}
+                    required
+                    disabled={loading}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="orderId" className="field-label">
+                    Order ID <span aria-hidden="true">*</span>
+                  </label>
+                  <input
+                    id="orderId"
+                    name="orderId"
+                    type="text"
+                    className="field-input"
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    value={form.orderId}
+                    onChange={handleFieldChange}
+                    required
+                    disabled={loading}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
               </div>
 
-              <div className="field">
-                <label htmlFor="reason" className="field-label">
-                  Reason <span aria-hidden="true">*</span>
-                </label>
-                <select
-                  id="reason"
-                  name="reason"
-                  className="field-input field-select"
-                  value={form.reason}
-                  onChange={handleFieldChange}
-                  required
+              {mode === 'structured' && (
+                <div className="field-group">
+                  <div className="field">
+                    <label htmlFor="requestedAmount" className="field-label">
+                      Requested amount <span aria-hidden="true">*</span>
+                    </label>
+                    <input
+                      id="requestedAmount"
+                      name="requestedAmount"
+                      type="text"
+                      inputMode="decimal"
+                      className="field-input"
+                      placeholder="49.99"
+                      value={form.requestedAmount}
+                      onChange={handleFieldChange}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor="reason" className="field-label">
+                      Reason <span aria-hidden="true">*</span>
+                    </label>
+                    <select
+                      id="reason"
+                      name="reason"
+                      className="field-input field-select"
+                      value={form.reason}
+                      onChange={handleFieldChange}
+                      required
+                      disabled={loading}
+                    >
+                      {REFUND_REASONS.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {mode === 'ai' && (
+                <div className="field">
+                  <label htmlFor="message" className="field-label">
+                    Customer message <span aria-hidden="true">*</span>
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    className="field-input field-textarea"
+                    placeholder="Describe the issue and the amount you are requesting, e.g. 'My item arrived with a cracked screen. I paid $49.99 and would like a full refund.'"
+                    rows={5}
+                    value={form.message}
+                    onChange={handleFieldChange}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              )}
+
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="btn-submit"
                   disabled={loading}
+                  aria-busy={loading}
                 >
-                  {REFUND_REASONS.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                  {loading ? 'Submitting…' : 'Submit refund request'}
+                </button>
               </div>
-            </div>
-          )}
+            </form>
 
-          {/* AI-assisted refund field */}
-          {mode === 'ai' && (
-            <div className="field">
-              <label htmlFor="message" className="field-label">
-                Customer message <span aria-hidden="true">*</span>
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                className="field-input field-textarea"
-                placeholder="Describe the issue and the amount you are requesting, e.g. 'My item arrived with a cracked screen. I paid $49.99 and would like a full refund.'"
-                rows={5}
-                value={form.message}
-                onChange={handleFieldChange}
-                required
-                disabled={loading}
-              />
-            </div>
-          )}
+            {error !== null && (
+              <div className="result-panel result-panel--error" role="alert">
+                <p className="result-panel__heading">Request failed</p>
+                <p className="result-panel__message">{error}</p>
+              </div>
+            )}
 
-          <div className="form-actions">
-            <button
-              type="submit"
-              className="btn-submit"
-              disabled={loading}
-              aria-busy={loading}
-            >
-              {loading ? 'Submitting…' : 'Submit refund request'}
-            </button>
-          </div>
-        </form>
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Error                                                             */}
-        {/* ---------------------------------------------------------------- */}
-        {error !== null && (
-          <div className="result-panel result-panel--error" role="alert">
-            <p className="result-panel__heading">Request failed</p>
-            <p className="result-panel__message">{error}</p>
-          </div>
-        )}
-
-        {/* ---------------------------------------------------------------- */}
-        {/* Result                                                            */}
-        {/* ---------------------------------------------------------------- */}
-        {result !== null && (
-          <RefundResult result={result} mode={mode} />
-        )}
+            {result !== null && (
+              <RefundResult result={result} mode={mode} />
+            )}
           </>
         )}
       </main>
@@ -360,7 +306,7 @@ function App() {
 }
 
 // ---------------------------------------------------------------------------
-// DevScenarioPanel — rendered only when import.meta.env.DEV is true
+// DevScenarioPanel
 // ---------------------------------------------------------------------------
 
 interface DevScenarioPanelProps {
@@ -398,7 +344,7 @@ function DevScenarioPanel({ activeScenario, onSelect }: DevScenarioPanelProps) {
 }
 
 // ---------------------------------------------------------------------------
-// RefundResult sub-component
+// RefundResult
 // ---------------------------------------------------------------------------
 
 interface RefundResultProps {
@@ -479,7 +425,7 @@ function RefundResult({ result, mode }: RefundResultProps) {
 export default App
 
 // ---------------------------------------------------------------------------
-// AdminDashboard component
+// AdminDashboard
 // ---------------------------------------------------------------------------
 
 const DECISION_BADGE_CLASS: Record<string, string> = {

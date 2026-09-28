@@ -23,7 +23,6 @@ class OrderItem(Base):
     # Stored as a column so the refund policy engine can query it later.
     final_sale: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    # Relationships
     order: Mapped["Order"] = relationship(  # noqa: F821
         "Order",
         back_populates="items",

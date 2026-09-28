@@ -1,42 +1,25 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# Worknoon Refund System — Frontend Image
-# ─────────────────────────────────────────────────────────────────────────────
-# Stage 1: Node — build the Vite/React app
-# Stage 2: nginx — serve the compiled static assets
-#
-# VITE_API_BASE_URL must be set at build time so Vite can inline the correct
-# backend URL into the bundle.  docker-compose passes it via build args.
-# ─────────────────────────────────────────────────────────────────────────────
-
-# ── Stage 1: build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Accept the API base URL as a build argument; default to the docker-compose
-# service name so the browser can reach the backend container.
+# VITE_API_BASE_URL must be set at build time — Vite inlines it into the
+# bundle and it cannot be changed at runtime without a rebuild.
 ARG VITE_API_BASE_URL=http://localhost:8000
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
-# Copy package files and node_modules from the host (pre-installed).
-# This avoids running npm install inside Docker, which requires network access.
+# Copy pre-installed node_modules from the host to avoid running npm install
+# inside Docker (requires network access).
 COPY package*.json ./
 COPY node_modules ./node_modules
 
-# Copy source and build.
 COPY . .
 RUN npm run build
 
-# ── Stage 2: serve ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS serve
 
-# Remove the default nginx site.
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy the custom nginx config.
 COPY nginx.conf /etc/nginx/conf.d/app.conf
-
-# Copy built assets from stage 1.
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80

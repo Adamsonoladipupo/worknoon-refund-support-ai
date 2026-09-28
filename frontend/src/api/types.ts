@@ -6,10 +6,6 @@
  * Do not hardcode policy logic here — the backend is the authority.
  */
 
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
-
 /**
  * Refund reason options — mirrors app.policies.refund_policy.RefundReason.
  * Must be sent as-is; the backend validates against this enum.
@@ -21,10 +17,6 @@ export type RefundReason = 'DAMAGED_ITEM' | 'INCORRECT_ITEM' | 'OTHER'
  * These are the only values the backend ever writes to the decision field.
  */
 export type RefundDecision = 'APPROVED' | 'DENIED' | 'ESCALATED'
-
-// ---------------------------------------------------------------------------
-// Request bodies
-// ---------------------------------------------------------------------------
 
 /**
  * POST /api/refunds — structured refund request.
@@ -46,10 +38,6 @@ export interface AIRefundRequestCreate {
   order_id: string      // UUID string
   message: string       // Non-empty; validated by backend (strips whitespace)
 }
-
-// ---------------------------------------------------------------------------
-// Response bodies
-// ---------------------------------------------------------------------------
 
 /**
  * Both POST /api/refunds and POST /api/refunds/ai return this shape on 201.
@@ -88,10 +76,6 @@ export interface RefundSummaryResponse {
   created_at: string              // ISO 8601 datetime
 }
 
-// ---------------------------------------------------------------------------
-// Error shapes
-// ---------------------------------------------------------------------------
-
 /**
  * FastAPI validation error detail item (422 responses).
  */
@@ -108,10 +92,6 @@ export interface FastAPIValidationErrorItem {
 export interface FastAPIErrorBody {
   detail: string | FastAPIValidationErrorItem[]
 }
-
-// ---------------------------------------------------------------------------
-// Frontend-internal error type
-// ---------------------------------------------------------------------------
 
 /**
  * Normalized API error returned from client functions.

@@ -16,10 +16,6 @@
 
 import type { RefundReason } from './api/types'
 
-// ---------------------------------------------------------------------------
-// Scenario shape
-// ---------------------------------------------------------------------------
-
 /** Identifies which submission mode the scenario targets. */
 export type ScenarioMode = 'structured' | 'ai'
 
@@ -45,10 +41,6 @@ export interface TestScenario {
   clearResult?: boolean
 }
 
-// ---------------------------------------------------------------------------
-// Seeded customer / order UUIDs
-// ---------------------------------------------------------------------------
-
 const ALICE_ID = '00000000-0000-0000-0000-000000000001'
 
 /** ORD-1001 — 8 days old — within the 30-day refund window → APPROVED */
@@ -59,10 +51,6 @@ const ORDER_OUTSIDE_WINDOW = '10000000-0000-0000-0000-000000001002'
 
 /** Syntactically valid UUID that does not exist in the database → 404 */
 const UNKNOWN_CUSTOMER = '99999999-9999-9999-9999-999999999999'
-
-// ---------------------------------------------------------------------------
-// Scenario definitions
-// ---------------------------------------------------------------------------
 
 export const TEST_SCENARIOS: TestScenario[] = [
   {

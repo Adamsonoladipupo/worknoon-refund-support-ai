@@ -185,7 +185,6 @@ class AIService:
                 f"Unexpected error calling the AI analysis service: {type(exc).__name__}"
             ) from exc
 
-        # Extract the raw JSON text from the response.
         raw_text: str | None = None
         try:
             raw_text = response.text

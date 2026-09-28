@@ -14,7 +14,6 @@ engine = create_async_engine(
     echo=settings.app_debug,
 )
 
-# async_sessionmaker is the async equivalent of sessionmaker.
 # expire_on_commit=False avoids implicit lazy-loads after commit inside an
 # async context, where the session may already be closed.
 AsyncSessionLocal = async_sessionmaker(

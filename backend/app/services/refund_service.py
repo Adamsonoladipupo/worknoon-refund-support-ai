@@ -1,38 +1,13 @@
-
 """
-Refund Request Service.
+Refund request service.
 
-Owns the end-to-end application workflow for processing a refund request.
+Two workflows:
+  process_refund()     — direct structured refund; caller supplies reason + amount.
+  process_ai_refund()  — natural-language refund; Gemini extracts reason + amount,
+                         then process_refund() runs the deterministic policy.
 
-There are two workflows:
-
-1. process_refund()
-   Direct structured refund processing.
-   The caller already provides the refund reason and amount.
-
-2. process_ai_refund()
-   Natural-language refund processing.
-   Gemini extracts the refund reason and requested amount from the customer's
-   message. The extracted information is then passed into process_refund(),
-   where the deterministic RefundPolicy remains the final authority.
-
-Important architecture rule:
-    Gemini does NOT decide whether a refund is approved, denied, or escalated.
-
-    Gemini:
-        Customer message
-            ↓
-        Structured extraction
-            ↓
-        reason + requested_amount
-
-    RefundPolicy:
-        reason + amount + order facts
-            ↓
-        APPROVED / DENIED / ESCALATED
-
-The AI layer therefore assists with understanding the customer's message,
-while the deterministic policy engine remains authoritative.
+Architecture rule: Gemini does NOT decide APPROVED / DENIED / ESCALATED.
+RefundPolicy is the sole authority for all decisions.
 """
 
 from __future__ import annotations
@@ -61,7 +36,6 @@ from app.repositories.order_repository import OrderRepository
 from app.repositories.refund_repository import RefundRepository
 
 
-# One deterministic policy instance is shared by the service.
 _policy = RefundPolicy()
 
 
@@ -74,27 +48,17 @@ class RefundService:
             ai_service: AIService | None = None,
     ) -> None:
         """
-        Initialise the refund service.
-
         Args:
-            session:
-                SQLAlchemy async database session.
-
-            ai_service:
-                Optional AIService used by process_ai_refund().
-
-                It is optional so the existing deterministic refund workflow
-                remains usable without Gemini.
+            session: SQLAlchemy async database session.
+            ai_service: Optional AIService used by process_ai_refund().
+                        Omitting it keeps the structured refund workflow usable
+                        without Gemini.
         """
         self._session = session
         self._customer_repo = CustomerRepository(session)
         self._order_repo = OrderRepository(session)
         self._refund_repo = RefundRepository(session)
         self._ai_service = ai_service
-
-    # ======================================================================
-    # DIRECT / STRUCTURED REFUND WORKFLOW
-    # ======================================================================
 
     async def process_refund(
             self,
@@ -107,68 +71,28 @@ class RefundService:
         """
         Process a structured refund request end-to-end.
 
-        Workflow:
-
-            1. Fetch customer.
-            2. Fetch order.
-            3. Validate customer ownership.
-            4. Validate requested amount.
-            5. Convert ORM data into plain policy facts.
-            6. Evaluate deterministic RefundPolicy.
-            7. Persist RefundRequest.
-            8. Commit transaction.
-
-        The policy engine is the sole authority for the refund decision.
-
         Raises:
-            CustomerNotFoundError:
-                If no customer exists with customer_id.
-
-            OrderNotFoundError:
-                If no order exists with order_id, or the order does not
-                belong to the requesting customer.
-
-            InvalidRefundAmountError:
-                If requested_amount is zero/negative or exceeds the order
-                total.
+            CustomerNotFoundError: customer_id does not exist.
+            OrderNotFoundError: order_id does not exist or belongs to another customer.
+            InvalidRefundAmountError: amount is zero/negative or exceeds the order total.
         """
-
-        # ------------------------------------------------------------------
-        # 1. Fetch customer
-        # ------------------------------------------------------------------
         customer = await self._customer_repo.get_by_id(customer_id)
-
         if customer is None:
             raise CustomerNotFoundError(customer_id)
 
-        # ------------------------------------------------------------------
-        # 2. Fetch order
-        #
-        # OrderRepository.get_by_id() eager-loads the order items, so
-        # accessing order.items below does not trigger an unexpected
-        # asynchronous lazy-load.
-        # ------------------------------------------------------------------
+        # OrderRepository.get_by_id() eager-loads items so order.items is safe to access.
         order = await self._order_repo.get_by_id(order_id)
-
         if order is None:
             raise OrderNotFoundError(order_id)
 
-        # ------------------------------------------------------------------
-        # 3. Validate ownership
-        #
-        # We intentionally return OrderNotFoundError rather than exposing
-        # that an order exists for another customer.
-        # ------------------------------------------------------------------
+        # Return OrderNotFoundError for mismatches — avoids exposing that an order
+        # exists for a different customer.
         if order.customer_id != customer_id:
             raise OrderNotFoundError(order_id)
 
-        # ------------------------------------------------------------------
-        # 4. Validate requested amount
-        # ------------------------------------------------------------------
         if requested_amount <= Decimal("0"):
             raise InvalidRefundAmountError(
-                f"Requested refund amount must be positive, "
-                f"got {requested_amount}.",
+                f"Requested refund amount must be positive, got {requested_amount}.",
                 amount=requested_amount,
             )
 
@@ -179,11 +103,6 @@ class RefundService:
                 amount=requested_amount,
             )
 
-        # ------------------------------------------------------------------
-        # 5. Convert ORM entities into plain policy facts
-        #
-        # The policy layer should not depend on SQLAlchemy ORM models.
-        # ------------------------------------------------------------------
         item_facts = tuple(
             OrderItemFact(
                 item_id=item.id,
@@ -201,35 +120,10 @@ class RefundService:
             items=item_facts,
         )
 
-        # ------------------------------------------------------------------
-        # 6. Determine the item being evaluated
-        #
-        # The current API represents a refund request at order level rather
-        # than accepting an explicit item_id.
-        #
-        # Therefore, for the current MVP, the first order item is treated
-        # as the focal item.
-        #
-        # A future item-level refund API can extend process_refund() with
-        # an explicit item_id.
-        # ------------------------------------------------------------------
-        first_item_id = (
-            item_facts[0].item_id
-            if item_facts
-            else uuid.uuid4()
-        )
+        # MVP: refunds are at order level, not item level. Use the first item as
+        # the focal item. A future item-level API can pass an explicit item_id.
+        first_item_id = item_facts[0].item_id if item_facts else uuid.uuid4()
 
-        # ------------------------------------------------------------------
-        # 7. Evaluate deterministic refund policy
-        #
-        # IMPORTANT:
-        # Gemini is NOT involved here.
-        #
-        # RefundPolicy remains the authority for:
-        #     APPROVED
-        #     DENIED
-        #     ESCALATED
-        # ------------------------------------------------------------------
         policy_result = _policy.evaluate(
             requesting_customer_id=customer_id,
             order=order_fact,
@@ -238,9 +132,6 @@ class RefundService:
             refund_reason=reason,
         )
 
-        # ------------------------------------------------------------------
-        # 8. Create persistence model
-        # ------------------------------------------------------------------
         refund_request = RefundRequest(
             customer_id=customer_id,
             order_id=order_id,
@@ -250,21 +141,10 @@ class RefundService:
             decision_reason=policy_result.reason,
         )
 
-        # ------------------------------------------------------------------
-        # 9. Persist refund request
-        # ------------------------------------------------------------------
         refund_request = await self._refund_repo.create(refund_request)
-
-        # ------------------------------------------------------------------
-        # 10. Commit transaction
-        # ------------------------------------------------------------------
         await self._session.commit()
 
         return refund_request
-
-    # ======================================================================
-    # AI / NATURAL-LANGUAGE REFUND WORKFLOW
-    # ======================================================================
 
     async def process_ai_refund(
             self,
@@ -276,118 +156,31 @@ class RefundService:
         """
         Process a natural-language customer refund request.
 
-        Workflow:
-
-            Customer message
-                    ↓
-                Gemini AI
-                    ↓
-            RefundRequestAnalysis
-                    ↓
-             reason + amount
-                    ↓
-            process_refund()
-                    ↓
-             RefundPolicy
-                    ↓
-        APPROVED / DENIED / ESCALATED
-
-        Gemini is only responsible for extracting structured information
-        from the customer's message.
-
-        It does NOT make the final refund decision.
-
-        Args:
-            customer_id:
-                ID of the customer making the request.
-
-            order_id:
-                ID of the order being refunded.
-
-            message:
-                Natural-language refund request from the customer.
-
-        Returns:
-            Persisted RefundRequest containing the deterministic policy result.
+        Gemini extracts reason + amount from the message, then process_refund()
+        applies the deterministic policy. Gemini does NOT make the final decision.
 
         Raises:
-            AIServiceError:
-                If AIService has not been configured or Gemini fails.
-
-            InvalidRefundAmountError:
-                If Gemini cannot extract a valid refund amount.
-
-            CustomerNotFoundError:
-                If the customer does not exist.
-
-            OrderNotFoundError:
-                If the order does not exist or belongs to another customer.
-
-            InvalidRefundAmountError:
-                If the extracted amount is invalid or exceeds the order total.
+            AIServiceError: AIService is not configured or Gemini fails.
+            InvalidRefundAmountError: Gemini could not extract a valid amount.
+            CustomerNotFoundError / OrderNotFoundError: see process_refund().
         """
-
-        # ------------------------------------------------------------------
-        # 1. Ensure AI service is configured
-        # ------------------------------------------------------------------
         if self._ai_service is None:
             raise AIServiceError(
                 "AI service is not configured for this refund workflow."
             )
 
-        # ------------------------------------------------------------------
-        # 2. Send the customer's natural-language message to Gemini
-        #
-        # Gemini returns a RefundRequestAnalysis containing:
-        #
-        #     reason
-        #     summary
-        #     requested_amount
-        #     confidence
-        #
-        # Gemini does NOT determine APPROVED / DENIED / ESCALATED.
-        # ------------------------------------------------------------------
         analysis = await self._ai_service.analyze_request(message)
 
-        # ------------------------------------------------------------------
-        # 3. Require an explicit amount
-        #
-        # We deliberately do not allow the AI to invent an amount.
-        # ------------------------------------------------------------------
+        # Do not allow the AI to invent an amount — the customer must state it explicitly.
         if analysis.requested_amount is None:
             raise InvalidRefundAmountError(
-                "The customer message did not contain a valid "
-                "refund amount."
+                "The customer message did not contain a valid refund amount."
             )
 
-        # ------------------------------------------------------------------
-        # 4. Convert the AI reason into the deterministic policy enum
-        #
-        # Both enums currently contain:
-        #
-        #     DAMAGED_ITEM
-        #     INCORRECT_ITEM
-        #     OTHER
-        #
-        # They remain separate bounded contexts intentionally.
-        # ------------------------------------------------------------------
+        # Both RefundReason enums share the same values (DAMAGED_ITEM / INCORRECT_ITEM /
+        # OTHER) but are kept in separate bounded contexts intentionally.
         policy_reason = RefundReason(analysis.reason.value)
 
-        # ------------------------------------------------------------------
-        # 5. Pass the extracted information into the normal refund workflow
-        #
-        # From this point onward, Gemini is completely out of the decision
-        # process.
-        #
-        # process_refund() will:
-        #
-        #     - fetch the customer
-        #     - fetch the order
-        #     - validate ownership
-        #     - validate amount
-        #     - evaluate RefundPolicy
-        #     - persist the result
-        # ------------------------------------------------------------------
         return await self.process_refund(
             customer_id=customer_id,
             order_id=order_id,

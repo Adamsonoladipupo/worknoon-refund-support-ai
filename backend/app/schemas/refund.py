@@ -12,8 +12,6 @@ class RefundRequestCreate(BaseModel):
 
     customer_id: uuid.UUID
     order_id: uuid.UUID
-    # Decimal keeps money exact; the JSON number is coerced via Pydantic's
-    # built-in Decimal handling — no float conversion occurs.
     requested_amount: Decimal
     reason: RefundReason
 

@@ -30,7 +30,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# --- CORS ---
 # Allow the Vite development server and the containerised frontend (nginx on
 # port 5173) to make cross-origin requests.
 # In production, replace this list with the real frontend origin.
@@ -47,13 +46,11 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-# --- Routers ---
 app.include_router(customers.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
 app.include_router(refunds.router, prefix="/api")
 
 
-# --- Health ---
 @app.get("/health", tags=["health"])
 async def health_check() -> dict[str, Any]:
     """Liveness probe — confirms the process is running and accepting requests."""

@@ -14,17 +14,9 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
-# ---------------------------------------------------------------------------
-# Configuration constants
-# ---------------------------------------------------------------------------
 
 REFUND_WINDOW_DAYS: int = 30
 HIGH_VALUE_THRESHOLD: Decimal = Decimal("500.00")
-
-
-# ---------------------------------------------------------------------------
-# Enums
-# ---------------------------------------------------------------------------
 
 
 class RefundDecision(str, Enum):
@@ -44,11 +36,6 @@ class RefundRule(str, Enum):
     STANDARD_REFUND = "STANDARD_REFUND"
 
 
-# ---------------------------------------------------------------------------
-# Result dataclass
-# ---------------------------------------------------------------------------
-
-
 @dataclass(frozen=True)
 class RefundPolicyResult:
     """Immutable result produced by RefundPolicy.evaluate()."""
@@ -56,11 +43,6 @@ class RefundPolicyResult:
     decision: RefundDecision
     rule: RefundRule
     reason: str
-
-
-# ---------------------------------------------------------------------------
-# Input structures
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -83,20 +65,10 @@ class OrderFact:
     items: tuple[OrderItemFact, ...]
 
 
-# ---------------------------------------------------------------------------
-# Refund reason categories (used by the caller to signal intent)
-# ---------------------------------------------------------------------------
-
-
 class RefundReason(str, Enum):
     DAMAGED_ITEM = "DAMAGED_ITEM"
     INCORRECT_ITEM = "INCORRECT_ITEM"
     OTHER = "OTHER"
-
-
-# ---------------------------------------------------------------------------
-# Policy engine
-# ---------------------------------------------------------------------------
 
 
 class RefundPolicy:

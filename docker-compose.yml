@@ -51,7 +51,6 @@ services:
     environment:
       # Database — use the service name "db" for container-to-container comms.
       DATABASE_URL: postgresql+psycopg://worknoon:${POSTGRES_PASSWORD:-worknoon_dev_password}@db:5432/worknoon
-      # Application
       APP_ENV: ${APP_ENV:-development}
       APP_DEBUG: ${APP_DEBUG:-false}
       # AI — injected from the host .env; NEVER hard-code a real key here.
