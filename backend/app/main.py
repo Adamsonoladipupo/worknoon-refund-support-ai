@@ -13,9 +13,6 @@ from app.database.connection import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # type: ignore[type-arg]
-    # Nothing needs explicit setup at start — SQLAlchemy connects lazily.
-    # Dispose the connection pool cleanly on shutdown so Postgres doesn't hold
-    # open idle connections after the process exits.
     yield
     await engine.dispose()
 
@@ -30,9 +27,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Allow the Vite development server and the containerised frontend (nginx on
-# port 5173) to make cross-origin requests.
-# In production, replace this list with the real frontend origin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
