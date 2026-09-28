@@ -3,8 +3,7 @@ import { submitRefund, submitAIRefund, getRefunds } from './api/client'
 import type { ApiError, RefundDecision, RefundReason, RefundRequestResponse, RefundSummaryResponse } from './api/types'
 
 // ---------------------------------------------------------------------------
-// Dev-only import — guarded by import.meta.env.DEV at runtime.
-// Vite's tree-shaker removes this entire branch in production builds.
+// Test scenario import — included in all builds (dev + Docker/nginx)
 // ---------------------------------------------------------------------------
 import { TEST_SCENARIOS } from './testScenarios'
 import type { TestScenario } from './testScenarios'
@@ -180,16 +179,12 @@ function App() {
         {view === 'refund' && (
           <>
         {/* ---------------------------------------------------------------- */}
-        {/* DEV-ONLY: Test scenario selector                                  */}
-        {/* Vite strips this entire block in production (import.meta.env.DEV  */}
-        {/* is false in built output).                                        */}
+        {/* Test scenario selector — visible in all builds (dev + Docker)    */}
         {/* ---------------------------------------------------------------- */}
-        {import.meta.env.DEV && (
-          <DevScenarioPanel
-            activeScenario={activeScenario}
-            onSelect={applyScenario}
-          />
-        )}
+        <DevScenarioPanel
+          activeScenario={activeScenario}
+          onSelect={applyScenario}
+        />
 
         {/* ---------------------------------------------------------------- */}
         {/* Mode tabs                                                         */}
@@ -375,7 +370,7 @@ interface DevScenarioPanelProps {
 
 function DevScenarioPanel({ activeScenario, onSelect }: DevScenarioPanelProps) {
   return (
-    <aside className="dev-panel" aria-label="Test scenarios (development only)">
+    <aside className="dev-panel" aria-label="Test scenarios">
       <p className="dev-panel__heading">
         <span className="dev-panel__badge">DEV</span>
         Test scenarios

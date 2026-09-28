@@ -1,5 +1,5 @@
 /**
- * Development-only test scenario definitions.
+ * Test scenario definitions for the Dev Test panel.
  *
  * Each scenario pre-populates the refund form with data that exercises a
  * specific backend code path.  All data is submitted to the real backend —
@@ -10,9 +10,8 @@
  *   ORD-1001    — 8 days old      — 10000000-0000-0000-0000-000000001001 (APPROVED)
  *   ORD-1002    — 48 days old     — 10000000-0000-0000-0000-000000001002 (DENIED)
  *
- * This file must only be imported inside an `import.meta.env.DEV` guard.
- * It is never included in production builds because Vite's tree-shaker
- * eliminates the guarded branch.
+ * The panel is rendered unconditionally in all builds (npm run dev and
+ * the Docker/nginx production image).
  */
 
 import type { RefundReason } from './api/types'

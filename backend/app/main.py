@@ -31,20 +31,17 @@ app = FastAPI(
 )
 
 # --- CORS ---
-# Allow the Vite development server, the containerised frontend (nginx on
-# port 3000), and any configured frontend origin to make cross-origin requests.
+# Allow the Vite development server and the containerised frontend (nginx on
+# port 5173) to make cross-origin requests.
 # In production, replace this list with the real frontend origin.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        # Local Vite dev server
+        # Local Vite dev server (npm run dev) and Docker Compose nginx frontend
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5174",
-        # Docker Compose — nginx serves the built frontend on port 3000
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
     ],
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],

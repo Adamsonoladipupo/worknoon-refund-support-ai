@@ -67,7 +67,7 @@ deterministic policy engine is the sole authority for the final decision.
 ```
 Browser
   │
-  │  HTTP (port 3000 / 5173)
+  │  HTTP (port 5173)
   ▼
 React + TypeScript + Vite frontend
   │
@@ -211,7 +211,7 @@ docker compose up --build -d
 
 | Service  | Host port | Description            |
 |----------|-----------|------------------------|
-| Frontend | 3000      | http://localhost:3000  |
+| Frontend | 5173      | http://localhost:5173  |
 | Backend  | 8000      | http://localhost:8000  |
 | Database | 5432      | PostgreSQL (internal)  |
 
@@ -601,9 +601,9 @@ npm run build        # output in frontend/dist/
 
 ## 16. Manual Test Scenarios
 
-These scenarios can be reproduced using the dev-mode test scenario selector in the
-frontend (the purple **DEV** panel — only visible when running `npm run dev`, not in
-production builds) or by sending requests directly to the API.
+These scenarios can be reproduced using the test scenario selector in the
+frontend (the purple **DEV** panel — visible in both `npm run dev` and the
+Docker-served build at http://localhost:5173) or by sending requests directly to the API.
 
 ### Using the seed data
 
@@ -784,7 +784,7 @@ cp .env.example .env
 docker compose up --build
 
 # 4. Access the application
-open http://localhost:3000    # Frontend
+open http://localhost:5173    # Frontend
 open http://localhost:8000/docs  # API docs
 
 # 5. Stop
@@ -814,7 +814,7 @@ npm run dev
 
 ### Verifying the setup
 
-1. Open `http://localhost:3000` (Docker) or `http://localhost:5173` (local).
+1. Open `http://localhost:5173` in your browser.
 2. The **Refund Request** tab should load.
 3. Submit a test refund using Alice's known IDs (see [section 16](#16-manual-test-scenarios)).
 4. Switch to the **Admin Dashboard** tab — the submitted request should appear.

@@ -11,7 +11,7 @@
 #   frontend  — React/Vite built at image build time, served by nginx
 #
 # Access:
-#   Frontend  → http://localhost:3000
+#   Frontend  → http://localhost:5173
 #   Backend   → http://localhost:8000
 #   API docs  → http://localhost:8000/docs
 # ─────────────────────────────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "3000:80"
+      - "5173:80"
 
 volumes:
   postgres_data:
