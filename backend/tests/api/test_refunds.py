@@ -63,10 +63,6 @@ from app.core.exceptions import (
 from app.database.connection import get_db
 from app.main import app
 
-# ---------------------------------------------------------------------------
-# Shared test data
-# ---------------------------------------------------------------------------
-
 CUSTOMER_ID = uuid.uuid4()
 ORDER_ID = uuid.uuid4()
 REFUND_ID = uuid.uuid4()
@@ -106,11 +102,6 @@ def _make_refund_record(
     )
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture()
 def client() -> TestClient:
     """TestClient with get_db overridden to avoid any real DB connection."""
@@ -122,11 +113,6 @@ def client() -> TestClient:
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
     app.dependency_overrides.clear()
-
-
-# ---------------------------------------------------------------------------
-# Tests — POST /api/refunds (normal endpoint)
-# ---------------------------------------------------------------------------
 
 
 class TestCreateRefundEndpoint:
@@ -589,11 +575,6 @@ class TestCreateAIRefundEndpoint:
         assert data["decision"] == "APPROVED"
         assert "decision_reason" in data
         assert data["decision_reason"] is not None
-
-
-# ---------------------------------------------------------------------------
-# Tests — GET /api/refunds (admin dashboard)
-# ---------------------------------------------------------------------------
 
 
 class TestListRefundsEndpoint:

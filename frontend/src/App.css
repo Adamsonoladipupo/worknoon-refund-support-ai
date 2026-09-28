@@ -216,13 +216,11 @@ body {
   border: 1px solid transparent;
 }
 
-/* Error */
 .result-panel--error {
   background: #fef2f2;
   border-color: #fca5a5;
 }
 
-/* Decision-state panels */
 .result-panel--approved {
   background: #f0fdf4;
   border-color: #86efac;
@@ -243,7 +241,6 @@ body {
   border-color: #e2e8f0;
 }
 
-/* Headings inside panels */
 .result-panel__heading {
   font-size: 0.75rem;
   font-weight: 700;
@@ -340,7 +337,6 @@ body {
 
 /* ------------------------------------------------------------------ */
 /* DEV-only: Test scenario panel                                        */
-/* This block is only ever rendered when import.meta.env.DEV is true.  */
 /* ------------------------------------------------------------------ */
 
 .dev-panel {

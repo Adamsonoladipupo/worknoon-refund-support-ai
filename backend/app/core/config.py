@@ -10,7 +10,6 @@ class Settings(BaseSettings):
     # Optional at load time so the app can start without it; AIService raises
     # AIServiceConfigError at call time if it is absent.
     ai_api_key: str | None = None
-    # Override via AI_MODEL env var (e.g. gemini-1.5-pro for higher accuracy).
     ai_model: str = "gemini-2.0-flash"
 
     model_config = SettingsConfigDict(

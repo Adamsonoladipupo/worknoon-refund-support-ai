@@ -60,8 +60,6 @@ async function parseErrorResponse(response: Response): Promise<ApiError> {
     // JSON parse failed — use the default status-based message.
   }
 
-  // Provide friendlier fallbacks for specific well-known status codes that
-  // may arrive before JSON is available (e.g. 502/503 from a proxy).
   if (!message || message === `Request failed with status ${response.status}.`) {
     if (response.status === 502) {
       message = 'The AI analysis service is temporarily unavailable. Please try again later.'
@@ -128,37 +126,18 @@ async function postJson<TBody, TResponse>(
   return (await response.json()) as TResponse
 }
 
-/**
- * POST /api/refunds
- *
- * Submit a structured refund request.
- * Returns the created RefundRequestResponse (201) or throws ApiError.
- */
 export async function submitRefund(
   body: RefundRequestCreate,
 ): Promise<RefundRequestResponse> {
   return postJson<RefundRequestCreate, RefundRequestResponse>('/api/refunds', body)
 }
 
-/**
- * POST /api/refunds/ai
- *
- * Submit a natural-language refund request.
- * Gemini extracts reason + amount; RefundPolicy produces the final decision.
- * Returns the created RefundRequestResponse (201) or throws ApiError.
- */
 export async function submitAIRefund(
   body: AIRefundRequestCreate,
 ): Promise<RefundRequestResponse> {
   return postJson<AIRefundRequestCreate, RefundRequestResponse>('/api/refunds/ai', body)
 }
 
-/**
- * GET /api/refunds
- *
- * Retrieve recent refund requests for the admin/support dashboard.
- * Returns an array of RefundSummaryResponse ordered newest first.
- */
 export async function getRefunds(limit = 50): Promise<RefundSummaryResponse[]> {
   return getJson<RefundSummaryResponse[]>(`/api/refunds?limit=${limit}`)
 }

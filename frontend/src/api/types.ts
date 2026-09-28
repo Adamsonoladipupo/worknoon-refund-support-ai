@@ -12,10 +12,6 @@
  */
 export type RefundReason = 'DAMAGED_ITEM' | 'INCORRECT_ITEM' | 'OTHER'
 
-/**
- * Possible refund decisions returned by the policy engine.
- * These are the only values the backend ever writes to the decision field.
- */
 export type RefundDecision = 'APPROVED' | 'DENIED' | 'ESCALATED'
 
 /**
@@ -23,9 +19,9 @@ export type RefundDecision = 'APPROVED' | 'DENIED' | 'ESCALATED'
  * Source: app.schemas.refund.RefundRequestCreate
  */
 export interface RefundRequestCreate {
-  customer_id: string   // UUID string
-  order_id: string      // UUID string
-  requested_amount: string  // Decimal-safe: send as string, e.g. "49.99"
+  customer_id: string
+  order_id: string
+  requested_amount: string
   reason: RefundReason
 }
 
@@ -34,9 +30,9 @@ export interface RefundRequestCreate {
  * Source: app.schemas.refund.AIRefundRequestCreate
  */
 export interface AIRefundRequestCreate {
-  customer_id: string   // UUID string
-  order_id: string      // UUID string
-  message: string       // Non-empty; validated by backend (strips whitespace)
+  customer_id: string
+  order_id: string
+  message: string
 }
 
 /**
@@ -48,15 +44,15 @@ export interface AIRefundRequestCreate {
  * endpoints return the same persisted refund record.
  */
 export interface RefundRequestResponse {
-  id: string                      // UUID
-  customer_id: string             // UUID
-  order_id: string                // UUID
-  reason: string                  // Value of RefundReason enum as stored
-  requested_amount: string        // Decimal string, e.g. "49.99"
-  decision: RefundDecision | null // null means pending (not yet evaluated)
+  id: string
+  customer_id: string
+  order_id: string
+  reason: string
+  requested_amount: string
+  decision: RefundDecision | null
   decision_reason: string | null
-  created_at: string              // ISO 8601 datetime
-  updated_at: string              // ISO 8601 datetime
+  created_at: string
+  updated_at: string
 }
 
 /**
@@ -64,39 +60,28 @@ export interface RefundRequestResponse {
  * Source: app.schemas.refund.RefundSummaryResponse
  */
 export interface RefundSummaryResponse {
-  id: string                      // UUID
-  customer_id: string             // UUID
-  customer_name: string           // Joined from Customer.name
-  order_id: string                // UUID
-  order_number: string            // Joined from Order.order_number
-  reason: string                  // RefundReason value
-  requested_amount: string        // Decimal string
+  id: string
+  customer_id: string
+  customer_name: string
+  order_id: string
+  order_number: string
+  reason: string
+  requested_amount: string
   decision: RefundDecision | null
   decision_reason: string | null
-  created_at: string              // ISO 8601 datetime
+  created_at: string
 }
 
-/**
- * FastAPI validation error detail item (422 responses).
- */
 export interface FastAPIValidationErrorItem {
   loc: (string | number)[]
   msg: string
   type: string
 }
 
-/**
- * FastAPI HTTP error body (404, 422, 502, 503, etc.).
- * `detail` is a string for HTTP exceptions and an array for Pydantic 422s.
- */
 export interface FastAPIErrorBody {
   detail: string | FastAPIValidationErrorItem[]
 }
 
-/**
- * Normalized API error returned from client functions.
- * Callers always get a human-readable message string.
- */
 export interface ApiError {
   status: number
   message: string

@@ -16,10 +16,8 @@
 
 import type { RefundReason } from './api/types'
 
-/** Identifies which submission mode the scenario targets. */
 export type ScenarioMode = 'structured' | 'ai'
 
-/** The form fields that a scenario can populate. */
 export interface ScenarioFormPatch {
   customerId?: string
   orderId?: string

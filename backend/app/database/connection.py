@@ -10,7 +10,6 @@ engine = create_async_engine(
     # Pool sizing: keep it small for a single-process dev/assessment setup.
     pool_size=5,
     max_overflow=10,
-    # Echo SQL only in debug mode to avoid log noise in production.
     echo=settings.app_debug,
 )
 

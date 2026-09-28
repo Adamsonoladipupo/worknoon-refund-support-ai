@@ -158,10 +158,8 @@ class AIService:
         config = genai_types.GenerateContentConfig(
             # System instruction — trusted; set here, never in user content.
             system_instruction=SYSTEM_PROMPT,
-            # Constrain output to a JSON object matching our schema.
             response_mime_type="application/json",
             response_schema=_LLMOutput,
-            # Low temperature for deterministic extraction tasks.
             temperature=0.0,
         )
 
@@ -197,7 +195,6 @@ class AIService:
                 "The model may have triggered a safety filter."
             )
 
-        # Parse and validate through the internal model.
         try:
             llm_output = _LLMOutput.model_validate_json(raw_text)
         except (ValidationError, json.JSONDecodeError, ValueError) as exc:

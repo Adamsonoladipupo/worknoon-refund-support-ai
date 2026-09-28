@@ -30,7 +30,6 @@ const REFUND_REASONS: { value: RefundReason; label: string }[] = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-// Maps backend enum values to human-readable labels for display in results.
 const REASON_LABELS: Record<string, string> = {
   DAMAGED_ITEM: 'Damaged item',
   INCORRECT_ITEM: 'Incorrect item received',
@@ -305,10 +304,6 @@ function App() {
   )
 }
 
-// ---------------------------------------------------------------------------
-// DevScenarioPanel
-// ---------------------------------------------------------------------------
-
 interface DevScenarioPanelProps {
   activeScenario: number | null
   onSelect: (scenario: TestScenario, index: number) => void
@@ -342,10 +337,6 @@ function DevScenarioPanel({ activeScenario, onSelect }: DevScenarioPanelProps) {
     </aside>
   )
 }
-
-// ---------------------------------------------------------------------------
-// RefundResult
-// ---------------------------------------------------------------------------
 
 interface RefundResultProps {
   result: RefundRequestResponse
@@ -423,10 +414,6 @@ function RefundResult({ result, mode }: RefundResultProps) {
 }
 
 export default App
-
-// ---------------------------------------------------------------------------
-// AdminDashboard
-// ---------------------------------------------------------------------------
 
 const DECISION_BADGE_CLASS: Record<string, string> = {
   APPROVED: 'decision-badge--approved',

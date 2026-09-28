@@ -46,7 +46,6 @@ _TEST_MESSAGE = (
 
 
 async def _run() -> None:
-    # --- 1. Verify configuration (without revealing the key) ---------------
     print("=== Worknoon Gemini Integration Test ===\n")
 
     if not settings.ai_api_key:
@@ -63,14 +62,12 @@ async def _run() -> None:
     print(f"AI_MODEL   : {settings.ai_model}")
     print()
 
-    # --- 2. Instantiate AIService ------------------------------------------
     try:
         service = AIService()
     except AIServiceConfigError as exc:
         print(f"Configuration error: {exc}")
         sys.exit(1)
 
-    # --- 3. Send test message to Gemini ------------------------------------
     print("Test message:")
     print(f"  {_TEST_MESSAGE!r}")
     print()
@@ -93,7 +90,6 @@ async def _run() -> None:
 
     print("OK\n")
 
-    # --- 4. Print the structured result ------------------------------------
     print("RefundRequestAnalysis:")
     print(f"  reason           : {analysis.reason.value}")
     print(f"  summary          : {analysis.summary}")
