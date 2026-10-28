@@ -23,3 +23,9 @@ class CustomerRepository:
             select(Customer).where(Customer.email == email)
         )
         return result.scalar_one_or_none()
+
+    async def get_by_email_address(self, email: str) -> Customer | None:
+        result = await self._session.execute(
+            select(Customer).where(Customer.email == email)
+        )
+        return result.scalar_one_or_none()
